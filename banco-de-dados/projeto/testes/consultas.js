@@ -25,3 +25,5 @@ db('perfis')
     // .first()
     .then(res => console.log(res))
     .finally(() => db.destroy())
+
+    console.log('fim')
