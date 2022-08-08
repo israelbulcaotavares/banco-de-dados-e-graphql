@@ -5,7 +5,7 @@ module.exports = {
         try{
             const idsPerfis = []
             if(dados.perfis){
-                for(filtro of dados.perfis){
+                for(let filtro of dados.perfis){
                     const perfil = await obterPerfil(_, {
                         filtro:{ ...filtro }
                     })
@@ -18,7 +18,7 @@ module.exports = {
             const [id] = await db('usuarios')
                 .insert(dados)
             
-                for(perfil_id of idsPerfis){
+                for(let perfil_id of idsPerfis){
                     await db('usuarios_perfis')
                         .insert( { perfil_id, usuario_id: id })
                 }
@@ -30,9 +30,9 @@ module.exports = {
             throw new Error(e.sqlMessage)
         }
     },
-    async excluirUsuario(_, { filtro }) {
+    async excluirUsuario(_, args) {
         try{
-            const usuario = await obterUsuario(_,{ filtro })
+            const usuario = await obterUsuario(_, args)
             if(usuario) {
                 const { id }  = usuario
                 await db('usuarios_perfis')
@@ -48,7 +48,32 @@ module.exports = {
     },
     async alterarUsuario(_, { filtro, dados }) {
         try{
-                               
+           const usuario = await obterUsuario(_, { filtro })
+           if(usuario) {
+                const {id } = usuario 
+                if(dados.perfis) {
+                    await db('usuarios_perfis')
+                        .where({ usuario_id: id }).delete()
+
+                        for(let filtro of dados.perfis) {
+                            const perfil = await obterPerfil(_, {
+                                filtro 
+                            })
+                          perfil &&  await db('usuarios_perfis')
+                                .insert({
+                                    perfil_id: perfil.id,
+                                    usuario_id: id 
+
+                                })
+                        }
+                }
+
+                delete dados.perfis
+                await db('usuarios').where( { id })
+                    .update(dados)
+                
+           }
+           return !usuario ? null : { ...usuario, ...dados}                     
         } catch( e ) {
             throw new Error(e.sqlMessage)
         }
