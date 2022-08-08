@@ -1,4 +1,3 @@
-
 exports.up = function(knex, Promise) {
     return knex.schema.createTable('usuarios_perfis', table => {
         table.integer('usuario_id').unsigned()
